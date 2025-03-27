@@ -1,5 +1,5 @@
 import { Enemy } from "./enemies";
-import { Equipment, generateEquipment } from "./equipment";
+import { acquireEquipment, Equipment } from "./equipment";
 import { getRandomDrop } from "./inventory";
 import { getMaxHealth } from "./stats";
 
@@ -57,6 +57,7 @@ export function checkLevelUp(player: Player): Player {
 export function handleKillLogic(player: Player, enemy: Enemy) {
     const maxHP = getMaxHealth(player);
     const log: string[] = [];
+    let loot: Equipment | null = null;
     let updated = {
         ...player,
         experience: player.experience + enemy.experience,
@@ -75,9 +76,9 @@ export function handleKillLogic(player: Player, enemy: Enemy) {
         log.push(`You found a ${materialDrop}!`);
     }
     if (Math.random() < 0.5) {
-        const equipment = generateEquipment(updated.tier);
-        updated = equipItem(updated, equipment);
-        log.push(`You found (a) ${equipment.name}!`)
+        const result = acquireEquipment(updated);
+        loot = result.loot;
+        log.push(result.logMessage);
     }
-    return { player: updated, log};
+    return { player: updated, log, loot};
 }

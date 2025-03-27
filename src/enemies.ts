@@ -37,13 +37,13 @@ export interface Enemy {
     // Clone the enemy so it starts fresh
     return { ...candidates[randomIndex] };
   }
-  export function handleEnemyAttack(enemy: Enemy, player: Player) {
+  export function handleEnemyAttack(enemy: Enemy, player: Player): {updatedPlayer: Player; log:string} {
     const damage = enemy.attack;
-    const log: string[] = [];
-
-    const updatedPlayer = {
-        health: Math.max(player.health - damage, 0)
-    }
+    const updatedPlayer: Player = {
+      ...player,
+      health: Math.max(player.health - damage, 0)
+    };
+    const log = `The ${enemy.name} attacks for ${damage} damage!`;
     
-    return ;
+    return {updatedPlayer, log};
   }

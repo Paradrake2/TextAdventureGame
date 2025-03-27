@@ -1,22 +1,25 @@
 "use client";
 import { useState } from "react";
 import { runCommand } from "./command";
+import { Equipment } from "./equipment";
 import { Player } from "./player";
 
 interface CommandConsoleProps {
   player: Player;
+  pendingLoot: Equipment | null;
   setPlayer: (player: Player) => void;
   setLog: (log: (prev: string[]) => string[]) => void;
+  setPendingLoot: React.Dispatch<React.SetStateAction<Equipment | null>>;
 }
 
-export default function CommandConsole({ player, setPlayer, setLog }: CommandConsoleProps) {
+export default function CommandConsole({ player, setPlayer, setLog, pendingLoot, setPendingLoot }: CommandConsoleProps) {
   const [input, setInput] = useState("");
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (input.trim() === "") return;
 
-    const { log: result, updatedPlayer } = runCommand(input, player);
+    const { log: result, updatedPlayer } = runCommand(input, player, pendingLoot, setPendingLoot);
     setLog(prev => [...prev, `> ${input}`, ...result]);
     setPlayer(updatedPlayer);
     setInput("");

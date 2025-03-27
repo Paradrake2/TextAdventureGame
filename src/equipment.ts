@@ -1,4 +1,4 @@
-import { equipItem, EquipmentSlot, Player } from "./player";
+import { EquipmentSlot, Player } from "./player";
 
 export interface Equipment {
     slot: EquipmentSlot;
@@ -57,11 +57,8 @@ export function generateEquipment(tier: number): Equipment {
 }
 
 export function acquireEquipment(player: Player) {
-    updatedPlayer: player;
-    logMessage: String;
     const loot = generateEquipment(player.tier);
-    const updatedPlayer = equipItem(player, loot);
-    const logMessage = `You found (a) $(loot.name)!`;
+    const logMessage = `You found (a) ${loot.name}! Type "equip" to equip it or "discard" to ignore it.`;
 
-    return {updatedPlayer, logMessage}
+    return {loot, logMessage}
 }

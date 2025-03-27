@@ -1,8 +1,8 @@
 "use client";
 import { useState } from "react";
 import CommandConsole from "./CommandConsole";
-import { craftItem } from "./crafting";
 import { Enemy, generateEnemy, handleEnemyAttack } from "./enemies";
+import { Equipment } from "./equipment";
 import { Player, createDefaultPlayer, handleKillLogic } from "./player";
 import { getDamage, getMaxHealth } from "./stats";
 
@@ -12,6 +12,7 @@ export default function GameEngine() {
   const [enemy, setEnemy] = useState<Enemy>(generateEnemy(player.tier));
   const [log, setLog] = useState<string[]>([]);
   const [showStats, setShowStats] = useState(false);
+  const [pendingLoot, setPendingLoot] = useState<Equipment | null>(null);
 
   function handleAttack() {
     setEnemy(generateEnemy(player.tier));
@@ -25,26 +26,20 @@ export default function GameEngine() {
     setLog(prev => [...prev, `You hit the ${enemy.name} for ${damage}!`]);
 
     if (updatedEnemy.health > 0) {
-      handleEnemyAttack(updatedEnemy, player);
+      const {updatedPlayer, log:attackLog } = handleEnemyAttack(updatedEnemy, player);
+      setPlayer(updatedPlayer);
+      setLog(prev => [...prev, attackLog]);
     } else {
       setLog(prev => [...prev, `You defeated the ${enemy.name}!`]);
 
-  const { player: updatedPlayer, log: battleLog } = handleKillLogic(player, enemy);
+  const { player: updatedPlayer, log: battleLog, loot } = handleKillLogic(player, enemy);
   setPlayer(updatedPlayer);
   setEnemy(generateEnemy(updatedPlayer.tier));
 
   setLog(prev => [...prev, ...battleLog]);
-    }
+  if(loot) {
+    setPendingLoot(loot);
   }
-
-  function handleCommand(input: string) {
-    setLog(prev => [...prev, `${input}`]);
-    if (input.startsWith("craft")) {
-      //placeholder logic
-      setLog(prev => [...prev, "Coming soon"]);
-      craftItem; // this is here so saving the file doesnt remove the import from crafting, IT IS NOT FINAL AND WILL BE CHANGED
-    } else {
-      setLog(prev => [...prev, "Unknown command"]);
     }
   }
 
@@ -86,7 +81,7 @@ export default function GameEngine() {
   </div>
   
 )}
-<CommandConsole player={player} setPlayer={setPlayer} setLog={setLog} />
+<CommandConsole player={player} setPlayer={setPlayer} setLog={setLog} pendingLoot={pendingLoot} setPendingLoot={setPendingLoot}/>
 
     </div>
   );
