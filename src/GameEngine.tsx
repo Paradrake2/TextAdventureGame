@@ -1,17 +1,21 @@
 "use client";
 import { useState } from "react";
-import { Enemy, generateEnemy } from "./enemies";
-import { generateEquipment } from "./equipment";
-import { Player, createDefaultPlayer, equipItem } from "./player";
+import CommandConsole from "./CommandConsole";
+import { craftItem } from "./crafting";
+import { Enemy, generateEnemy, handleEnemyAttack } from "./enemies";
+import { Player, createDefaultPlayer, handleKillLogic } from "./player";
 import { getDamage, getMaxHealth } from "./stats";
+
 
 export default function GameEngine() {
   const [player, setPlayer] = useState<Player>(createDefaultPlayer());
-  const [enemy, setEnemy] = useState<Enemy>(generateEnemy());
+  const [enemy, setEnemy] = useState<Enemy>(generateEnemy(player.tier));
   const [log, setLog] = useState<string[]>([]);
+  const [showStats, setShowStats] = useState(false);
 
   function handleAttack() {
-    const damage = getDamage(player); //can be updated later for equipment
+    setEnemy(generateEnemy(player.tier));
+    const damage = getDamage(player);
 
     const updatedEnemy = {
       ...enemy,
@@ -21,41 +25,27 @@ export default function GameEngine() {
     setLog(prev => [...prev, `You hit the ${enemy.name} for ${damage}!`]);
 
     if (updatedEnemy.health > 0) {
-      handleEnemyAttack();
+      handleEnemyAttack(updatedEnemy, player);
     } else {
-      setLog(prev => [...prev, `You defeated the ${enemy.name}!`])
-      handleKill();
-      setEnemy(generateEnemy());
+      setLog(prev => [...prev, `You defeated the ${enemy.name}!`]);
+
+  const { player: updatedPlayer, log: battleLog } = handleKillLogic(player, enemy);
+  setPlayer(updatedPlayer);
+  setEnemy(generateEnemy(updatedPlayer.tier));
+
+  setLog(prev => [...prev, ...battleLog]);
     }
   }
-
-  function handleEnemyAttack() {
-    const damage = enemy.attack;
-    const updatedPlayer = {
-      ...player,
-      health: Math.max(player.health - damage, 0),
-    };
-
-    setPlayer(updatedPlayer);
-    setLog(prev => [...prev, `The ${enemy.name} attacks for ${damage} damage!`]);
-  }
-
-  function handleKill() {
-    const maxHealth = getMaxHealth(player);
-    setPlayer(prev => ({
-      ...prev,
-      health: Math.min(prev.health + 50, maxHealth)
-    }))
-    if (Math.random() < 0.5) {
-      acquireEquipment();
+  
+  function handleCommand(input: string) {
+    setLog(prev => [...prev, `${input}`]);
+    if (input.startsWith("craft")) {
+      //placeholder logic
+      setLog(prev => [...prev, "Coming soon"]);
+      craftItem; // this is here so saving the file doesnt remove the import from crafting, IT IS NOT FINAL AND WILL BE CHANGED
+    } else {
+      setLog(prev => [...prev, "Unknown command"]);
     }
-  }
-
-  function acquireEquipment() {
-    const tier = player.tier;
-    const loot = generateEquipment(tier);
-    setPlayer(prev => equipItem(prev, loot));
-    setLog(prev => [...prev, `You found (a) ${loot.name}!`]);
   }
 
   return (
@@ -66,14 +56,37 @@ export default function GameEngine() {
       <button onClick={handleAttack} className="mt-2 px-4 py-2 bg-red-600 hover:bg-red-700 rounded">
         Attack
       </button>
+      <button onClick={() => setShowStats(!showStats)} className="mat-2 px-4 py-2 bg-green-600 hover:bg-green-700 rounded">
+        Show Player Stats
+      </button>
       <div className="mt-4">
         <h3 className="text-lg font-bold">Battle Log:</h3>
         <ul className="list-disc pl-5 space-y-1">
-          {log.slice(-5).map((entry, index) => (
+          {log.slice(-9).map((entry, index) => (
             <li key={index}>{entry}</li>
           ))}
         </ul>
       </div>
+      {showStats && (
+  <div className="mt-4 p-4 bg-gray-800 rounded shadow-md text-sm space-y-1">
+    <h3 className="text-lg font-bold mb-2">Player Stats</h3>
+    <p><strong>Name:</strong> {player.name}</p>
+    <p><strong>Level:</strong> {player.level}</p>
+    <p><strong>Experience:</strong> {player.experience}</p>
+    <p><strong>Tier:</strong> {player.tier}</p>
+    <p><strong>HP:</strong> {player.health} / {getMaxHealth(player)}</p>
+    <div>
+      <strong>Equipment:</strong>
+      <ul className="list-disc ml-6">
+        {Object.entries(player.equipment).map(([slot, item]) => (
+          <li key={slot}>{slot}: {item}</li>
+        ))}
+      </ul>
+    </div>
+  </div>
+  
+)}
+<CommandConsole onCommand={handleCommand} />
     </div>
   );
 }

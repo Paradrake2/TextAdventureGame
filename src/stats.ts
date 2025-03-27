@@ -27,3 +27,4 @@ export function getDamage(player: Player): number {
 
     return baseDamage + bonus;
 }
+

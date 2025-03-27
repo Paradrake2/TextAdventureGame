@@ -11,3 +11,8 @@ export interface Item {
     { name: "Rusty Sword", slot: "weapon", attack: 5 },
     { name: "Leather Helmet", slot: "helmet", defense: 2 },
   ];
+
+  export function getRandomDrop(drops: string[]): string | null {
+    if (drops.length === 0 || Math.random() > 0.7) return null; // 30% drop chance
+    return drops[Math.floor(Math.random() * drops.length)];
+  }
