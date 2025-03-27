@@ -15,4 +15,4 @@ crafting: IN PROGRESS
 
 raw sex appeal: henry cavill level
 
-NOTES FOR MYSELF: right now, equipment is automatically equipped. Will need to change that. Add a command prompt so player can choose whether or not to keep new equipment they get. Eventually maybe add a shop system???
+NOTES FOR MYSELF: Need to add instructions for user, finish crafting system. Eventually maybe add a shop system???
