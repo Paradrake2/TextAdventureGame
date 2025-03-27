@@ -36,7 +36,7 @@ export default function GameEngine() {
   setLog(prev => [...prev, ...battleLog]);
     }
   }
-  
+
   function handleCommand(input: string) {
     setLog(prev => [...prev, `${input}`]);
     if (input.startsWith("craft")) {
@@ -86,7 +86,8 @@ export default function GameEngine() {
   </div>
   
 )}
-<CommandConsole onCommand={handleCommand} />
+<CommandConsole player={player} setPlayer={setPlayer} setLog={setLog} />
+
     </div>
   );
 }

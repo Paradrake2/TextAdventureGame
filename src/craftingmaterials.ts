@@ -9,6 +9,10 @@ export interface Material {
     synergyTags?: string[];
 }
 
+export function getMaterialByName(name: string) {
+    return materials.find(mat => mat.name.toLowerCase() === name.toLowerCase());
+  }
+
 export const materials: Material[] = [
     {
         id: 0,

@@ -1,17 +1,24 @@
 "use client";
 import { useState } from "react";
+import { runCommand } from "./command";
+import { Player } from "./player";
 
 interface CommandConsoleProps {
-  onCommand: (input: string) => void;
+  player: Player;
+  setPlayer: (player: Player) => void;
+  setLog: (log: (prev: string[]) => string[]) => void;
 }
 
-export default function CommandConsole({ onCommand }: CommandConsoleProps) {
+export default function CommandConsole({ player, setPlayer, setLog }: CommandConsoleProps) {
   const [input, setInput] = useState("");
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (input.trim() === "") return;
-    onCommand(input.trim());
+
+    const { log: result, updatedPlayer } = runCommand(input, player);
+    setLog(prev => [...prev, `> ${input}`, ...result]);
+    setPlayer(updatedPlayer);
     setInput("");
   }
 
