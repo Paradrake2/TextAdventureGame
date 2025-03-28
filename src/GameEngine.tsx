@@ -74,7 +74,7 @@ export default function GameEngine() {
       <strong>Equipment:</strong>
       <ul className="list-disc ml-6">
         {Object.entries(player.equipment).map(([slot, item]) => (
-          <li key={slot}>{slot}: {item}</li>
+          <li key={slot}>{slot}: {item.name as string}</li>
         ))}
       </ul>
     </div>

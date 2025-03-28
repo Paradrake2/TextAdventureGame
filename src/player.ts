@@ -10,7 +10,7 @@ export interface Player {
   level: number;
   experience: number;
   health: number;
-  equipment: Partial<Record<EquipmentSlot, string>>;
+  equipment: Partial<Record<EquipmentSlot, Equipment>>;
   tier: number;
   inventory: string[];
 }
@@ -21,11 +21,11 @@ export const createDefaultPlayer = (): Player => ({
   experience: 0,
   health: 100,
   equipment: {
-    boots: "Leather Boots",
-    leggings: "Leather Leggings",
-    chestplate: "Leather Chestplate",
-    helmet: "Leather Helmet",
-    weapon: "Wooden Sword",
+    boots: {slot:"boots", name: "Leather Boots", damage:0, health:0, tier: 0},
+    leggings: {slot:"leggings", name: "Leather Leggings", damage:0, health:0, tier: 0},
+    chestplate: {slot:"chestplate", name: "Leather Chestplate", damage:0, health:0, tier: 0},
+    helmet: {slot:"helmet", name: "Leather Helmet", damage:0, health:0, tier: 0},
+    weapon: {slot:"weapon", name: "Wooden Sword", damage:5, health:0, tier: 0},
   },
   tier: 1,
   inventory: [],
@@ -36,7 +36,7 @@ export function equipItem(player: Player, item: Equipment): Player {
         ...player,
         equipment: {
             ...player.equipment,
-            [item.slot]: item.name,
+            [item.slot]: item
         },
     };
 }

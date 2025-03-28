@@ -1,9 +1,11 @@
-import { getMaterialByName } from "./craftingmaterials";
+import { craftItem } from "./crafting";
+import { CraftingSlot, getMaterialByName, Material } from "./craftingmaterials";
 import { Equipment } from "./equipment";
 import { equipItem, Player } from "./player";
 
 
 // Very ugly massive function, definitely could be more efficient and clean but it works
+// Typically giant if/else chains are a bad idea, it's just the easiest thing right now. Eventually I might clean it up.
 export function runCommand(input: string, player: Player, pendingLoot: Equipment | null, setPendingLoot: React.Dispatch<React.SetStateAction<Equipment | null>>): {
   log: string[];
   updatedPlayer: Player;
@@ -23,7 +25,7 @@ export function runCommand(input: string, player: Player, pendingLoot: Equipment
   }
 
   else if (command.startsWith("inspect ")) {
-    const name = input.substring(10).trim();
+    const name = input.substring(8).trim();
     const material = getMaterialByName(name);
 
     if (!material) {
@@ -40,7 +42,67 @@ export function runCommand(input: string, player: Player, pendingLoot: Equipment
   }
 
   else if (command.startsWith("craft")) {
-    log.push("Crafting system coming soon!");
+    const args = input.substring(6).trim().split(/\s+/); // get slot:material parts
+  const slots: Partial<Record<CraftingSlot, Material>> = {};
+
+  const missing: string[] = [];
+  const invalidSlots: string[] = [];
+
+  for (const arg of args) {
+    const [slot, materialName] = arg.split(":");
+    if (!slot || !materialName) {
+      log.push(`Invalid syntax: ${arg}`);
+      return { log, updatedPlayer: player };
+    }
+
+    const slotKey = slot as CraftingSlot;
+    if (!["blade", "guard", "handle"].includes(slotKey)) {
+      invalidSlots.push(slot);
+      continue;
+    }
+
+    const material = getMaterialByName(materialName);
+    if (!material) {
+      missing.push(materialName);
+      continue;
+    }
+
+    if (!material.allowedSlots.includes(slotKey)) {
+      log.push(`${material.name} cannot be used in the ${slotKey} slot.`);
+      return { log, updatedPlayer: player };
+    }
+
+    if (!player.inventory.includes(material.name)) {
+      log.push(`You do not have ${material.name}.`);
+      return { log, updatedPlayer: player };
+    }
+
+    slots[slotKey] = material;
+  }
+
+  if (missing.length > 0) {
+    log.push(`Materials not found: ${missing.join(", ")}`);
+    return { log, updatedPlayer: player };
+  }
+
+  if (Object.keys(slots).length < 3) {
+    log.push("Missing crafting components (need blade, guard, and handle).");
+    return { log, updatedPlayer: player };
+  }
+
+  const crafted = craftItem(slots as Record<CraftingSlot, Material>);
+  setPendingLoot(crafted);
+  log.push(`You crafted ${crafted.name}! (+${crafted.damage} dmg, +${crafted.health} hp). Type "equip" to equip it.`);
+
+  // Optional: Remove used materials
+  for (const part of Object.values(slots)) {
+    const index = player.inventory.indexOf(part.name);
+    if (index !== -1) {
+      player.inventory.splice(index, 1);
+    }
+  }
+
+  return { log, updatedPlayer: player };
   }
 
   else if (command.startsWith("equip")) {
