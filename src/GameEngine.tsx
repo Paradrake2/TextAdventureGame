@@ -70,6 +70,7 @@ export default function GameEngine() {
     <p><strong>Experience:</strong> {player.experience}</p>
     <p><strong>Tier:</strong> {player.tier}</p>
     <p><strong>HP:</strong> {player.health} / {getMaxHealth(player)}</p>
+    <p><strong>DMG:</strong> {getDamage(player)}</p>
     <div>
       <strong>Equipment:</strong>
       <ul className="list-disc ml-6">

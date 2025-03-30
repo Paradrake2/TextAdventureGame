@@ -1,5 +1,6 @@
-import { CraftingSlot, Material } from "./craftingmaterials";
+import { CraftingSlot, getMaterialByName, Material } from "./craftingmaterials";
 import { Equipment } from "./equipment";
+import { Player } from "./player";
 
 export function craftItem(slots: Record<CraftingSlot, Material>): Equipment {
     let totalHealth = 0;
@@ -37,4 +38,70 @@ export function craftItem(slots: Record<CraftingSlot, Material>): Equipment {
     damage: totalDamage,
     tier: 0,
   };
+}
+
+export function craftWeaponLogic(input: string, player: Player, setPendingLoot: (item: Equipment) => void): {log:string[]; updatedPlayer: Player} {
+  const log: string[] = [];
+
+  const args = input.substring(13).trim().split(/\s+/); // everything after "craft"
+  const slots: Partial<Record<CraftingSlot, Material>> = {};
+
+  const missing: string[] = [];
+  const invalidSlots: string[] = [];
+
+  for (const arg of args) {
+    const [slot, materialName] = arg.split(":");
+    if (!slot || !materialName) {
+      log.push(`Invalid syntax: ${arg}`);
+      return { log, updatedPlayer: player };
+    }
+
+    const slotKey = slot as CraftingSlot;
+    if (!["blade", "guard", "handle"].includes(slotKey)) {
+      invalidSlots.push(slot);
+      continue;
+    }
+
+    const material = getMaterialByName(materialName);
+    if (!material) {
+      missing.push(materialName);
+      continue;
+    }
+
+    if (!material.allowedSlots.includes(slotKey)) {
+      log.push(`${material.name} cannot be used in the ${slotKey} slot.`);
+      return { log, updatedPlayer: player };
+    }
+
+    if (!player.inventory.includes(material.name)) {
+      log.push(`You do not have ${material.name}.`);
+      return { log, updatedPlayer: player };
+    }
+
+    slots[slotKey] = material;
+  }
+
+  if (missing.length > 0) {
+    log.push(`Materials not found: ${missing.join(", ")}`);
+    return { log, updatedPlayer: player };
+  }
+
+  if (Object.keys(slots).length < 3) {
+    log.push("Missing crafting components (need blade, guard, and handle).");
+    return { log, updatedPlayer: player };
+  }
+
+  const crafted = craftItem(slots as Record<CraftingSlot, Material>);
+  setPendingLoot(crafted);
+  log.push(`You crafted ${crafted.name}! (+${crafted.damage} dmg, +${crafted.health} hp). Type "equip" to equip it.`);
+
+  // Remove used materials from inventory
+  for (const part of Object.values(slots)) {
+    const index = player.inventory.indexOf(part.name);
+    if (index !== -1) {
+      player.inventory.splice(index, 1);
+    }
+  }
+
+  return { log, updatedPlayer: player };
 }
