@@ -69,7 +69,7 @@ export function runCommand(input: string, player: Player, pendingLoot: Equipment
   }
 
   else if (command.startsWith("help")){
-
+    return { log: helpLogic(input), updatedPlayer: player };
   }
 
   else {
@@ -77,4 +77,40 @@ export function runCommand(input: string, player: Player, pendingLoot: Equipment
   }
 
   return { log, updatedPlayer: player};
+}
+
+export function helpLogic(input: string): string[] {
+  const log: string[] = [];
+  const parts = input.trim().toLowerCase().split(/\s+/);
+  const topic = parts[1];
+
+  if (!topic) {
+    log.push("Available commands: inventory, craft [type], equip, discard, inspect");
+    log.push("- help [command] for further information on each command");
+  } else if (topic === "craft") {
+    log.push("Crafting Weapons:");
+    log.push("Command structure: craft weapon blade:<material> guard:<material> handle:<material>");
+    log.push("You must have the materials in your inventory.");
+    log.push("Example: craft weapon blade:rat_tooth guard:goblin_bone handle:kobold_bone");
+  } else if (topic === "inspect") {
+    log.push("Inspect:");
+    log.push("Command structure: inspect <material_name>");
+    log.push("This will return the stats of the material as well as where it can be used.");
+  } else if (topic === "inventory") {
+    log.push("Inventory:");
+    log.push("Command structure: inventory");
+    log.push("This returns all the materials you have in your inventory.");
+  } else if (topic === "equip") {
+    log.push("Equip:");
+    log.push("Command structure: equip");
+    log.push("This allows you to equip any pending equipment.");
+  } else if (topic === "discard") {
+    log.push("Discard:");
+    log.push("Command structure: discard");
+    log.push("This allows you to discard any pending equipment.");
+  } else {
+    log.push(`No help available for '${topic}'.`);
+  }
+
+  return log;
 }
