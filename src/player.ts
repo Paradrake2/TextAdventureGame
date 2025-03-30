@@ -13,6 +13,7 @@ export interface Player {
   equipment: Partial<Record<EquipmentSlot, Equipment>>;
   tier: number;
   inventory: string[];
+  forgeAvailable: boolean;
 }
 
 export const createDefaultPlayer = (): Player => ({
@@ -29,6 +30,7 @@ export const createDefaultPlayer = (): Player => ({
   },
   tier: 1,
   inventory: [],
+  forgeAvailable: false,
 });
 
 export function equipItem(player: Player, item: Equipment): Player {

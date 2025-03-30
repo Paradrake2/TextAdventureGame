@@ -40,7 +40,7 @@ export function craftItem(slots: Record<CraftingSlot, Material>): Equipment {
   };
 }
 
-export function craftWeaponLogic(input: string, player: Player, setPendingLoot: (item: Equipment) => void): {log:string[]; updatedPlayer: Player} {
+export function craftLogic(type: string, input: string, player: Player, setPendingLoot: (item: Equipment) => void): {log:string[]; updatedPlayer: Player} {
   const log: string[] = [];
 
   const args = input.substring(13).trim().split(/\s+/); // everything after "craft"
@@ -104,4 +104,73 @@ export function craftWeaponLogic(input: string, player: Player, setPendingLoot: 
   }
 
   return { log, updatedPlayer: player };
+}
+
+export function refineOresToIngots(player: Player) : string[] {
+  const log: string[] = [];
+  const refined: string[] = [];
+
+  for (let i = player.inventory.length - 1; i >= 0; i--) {
+    const mat = getMaterialByName(player.inventory[i]);
+    if (mat?.type === "ore") {
+      const ingotName = mat.name.replace("_ore", "_ingot");
+      player.inventory.splice(i,1);
+      player.inventory.push(ingotName);
+      refined.push(ingotName);
+    }
+  }
+
+  if (refined.length > 0) {
+    log.push(`Refined ${refined.length} ores into ingots: ${refined.join(", ")}`);
+  }
+  else {
+    log.push("No ores to refine.");
+  }
+
+  return log;
+}
+
+export function craftMaterials(input: string, player: Player): {log: string[], updatedPlayer: Player} {
+  const log: string[] = [];
+  const args = input.trim().split(/\s+/);
+
+  if (args.length !== 4) {
+    log.push("usage: craft material <ingot> <crafted_material>");
+    return {log, updatedPlayer: player};
+  }
+
+  const ingotName = args[2];
+  const craftedName = args[3];
+
+  const ingot = getMaterialByName(ingotName);
+  const crafted = getMaterialByName(craftedName);
+  
+
+  if (!ingot) {
+    log.push(`Ingot ${ingotName} not found.`);
+    return {log, updatedPlayer: player};
+  }
+
+  if (!crafted) {
+    log.push(`Crafted material ${craftedName} not found.`);
+    return {log, updatedPlayer: player};
+  }
+
+  if (crafted.type !== "crafted_material") {
+    log.push(`${craftedName} is not a craftable material.`);
+    return {log, updatedPlayer: player};
+  }
+
+  const ingotIndex = player.inventory.indexOf(ingotName);
+  if (ingotIndex === -1) {
+    log.push(`You do not have ${ingotName} in your inventory`);
+    return {log, updatedPlayer: player};
+  }
+
+  const updatedPlayer = { ...player};
+  updatedPlayer.inventory.splice(ingotIndex, 1);
+  updatedPlayer.inventory.push(craftedName);
+  log.push(`You crafted ${craftedName} from ${ingotName}`);
+
+  return {log, updatedPlayer};
 }

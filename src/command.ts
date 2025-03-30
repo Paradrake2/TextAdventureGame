@@ -1,12 +1,17 @@
-import { craftWeaponLogic } from "./crafting";
+import { craftLogic, craftMaterials } from "./crafting";
 import { getMaterialByName } from "./craftingmaterials";
+import { Enemy, generateEnemy } from "./enemies";
 import { Equipment } from "./equipment";
 import { equipItem, Player } from "./player";
 
 
 // Very ugly massive function, definitely could be more efficient and clean but it works
 // Typically giant if/else chains are a bad idea, it's just the easiest thing right now. Eventually I might clean it up.
-export function runCommand(input: string, player: Player, pendingLoot: Equipment | null, setPendingLoot: React.Dispatch<React.SetStateAction<Equipment | null>>): {
+export function runCommand(input: string, player: Player, pendingLoot: Equipment | null, setPendingLoot: React.Dispatch<React.SetStateAction<Equipment | null>>,
+  encounter: "none" | "forge" | "ore_mine",
+  setEncounter: React.Dispatch<React.SetStateAction<"none" | "forge" | "ore_mine">>,
+  setEnemy: React.Dispatch<React.SetStateAction<Enemy>>
+): {
   log: string[];
   updatedPlayer: Player;
 } {
@@ -40,9 +45,30 @@ export function runCommand(input: string, player: Player, pendingLoot: Equipment
       }
     }
   }
+  else if (command === "leave") {
+    if (encounter === "forge" || encounter === "ore_mine") {
+      setEncounter("none");
+      log.push("You leave the area...");
+      setEnemy(generateEnemy(player.tier));
+    } else {
+      log.push("There's nothing to leave.");
+    }
+  }
 
   else if (command.startsWith("craft weapon")) {
-    return craftWeaponLogic(input, player, setPendingLoot);
+    return craftLogic("weapon", input, player, setPendingLoot);
+  }
+
+  else if (command.startsWith("craft material")) {
+    if (!player.forgeAvailable) {
+      log.push("You must be at a forge to craft materials!");
+      return {log, updatedPlayer: player};
+    } 
+    else {
+      return craftMaterials(input, player);
+    }
+    
+
   }
 
   else if (command === "equip") {

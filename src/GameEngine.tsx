@@ -1,10 +1,12 @@
 "use client";
 import { useState } from "react";
 import CommandConsole from "./CommandConsole";
+import { refineOresToIngots } from "./crafting";
+import { oreEncounter } from "./encounters";
 import { Enemy, generateEnemy, handleEnemyAttack } from "./enemies";
 import { Equipment } from "./equipment";
 import { Player, createDefaultPlayer, handleKillLogic } from "./player";
-import { getDamage, getMaxHealth } from "./stats";
+import { getDamage, getMaxHealth, isForgeAvailable } from "./stats";
 
 
 export default function GameEngine() {
@@ -13,11 +15,12 @@ export default function GameEngine() {
   const [log, setLog] = useState<string[]>([]);
   const [showStats, setShowStats] = useState(false);
   const [pendingLoot, setPendingLoot] = useState<Equipment | null>(null);
+  const [encounter, setEncounter] = useState<"none" | "ore_mine" | "forge">("none");
 
   function handleAttack() {
     setEnemy(generateEnemy(player.tier));
+    player.forgeAvailable = false;
     const damage = getDamage(player);
-
     const updatedEnemy = {
       ...enemy,
       health: Math.max(enemy.health - damage, 0)
@@ -29,18 +32,46 @@ export default function GameEngine() {
       const {updatedPlayer, log:attackLog } = handleEnemyAttack(updatedEnemy, player);
       setPlayer(updatedPlayer);
       setLog(prev => [...prev, attackLog]);
-    } else {
+    }
+    else {
       setLog(prev => [...prev, `You defeated the ${enemy.name}!`]);
 
-  const { player: updatedPlayer, log: battleLog, loot } = handleKillLogic(player, enemy);
-  setPlayer(updatedPlayer);
-  setEnemy(generateEnemy(updatedPlayer.tier));
+      const { player: updatedPlayer, log: battleLog, loot } = handleKillLogic(player, enemy);
+      setPlayer(updatedPlayer);
 
-  setLog(prev => [...prev, ...battleLog]);
-  if(loot) {
-    setPendingLoot(loot);
-  }
+      // Encounter system will go here
+      const shouldSpawnEnemy = encounterHandler(player);
+      if (shouldSpawnEnemy) {
+        log.push("SHOULD SPAWN ENEMY");
+      }
+
+      setLog(prev => [...prev, ...battleLog]);
+      if(loot) {
+        setPendingLoot(loot);
+      }
     }
+  }
+
+  function encounterHandler(updatedPlayer: Player): boolean {
+    const roll = Math.random();
+    log.push(roll.toString());
+    if (roll < 0.1) {
+      return true;
+    }
+    else if (roll < 0.45) {
+      const result = oreEncounter(player);
+      setPlayer(result.updatedPlayer);
+      setLog(prev => [...prev, ...result.log]);
+      setEncounter("ore_mine");
+      log.push("ore mine encountered");
+      return false;
+    }
+    updatedPlayer.forgeAvailable = true;
+  refineOresToIngots(updatedPlayer);
+  setPlayer({ ...updatedPlayer });
+  setLog(prev => [...prev, "You stumble upon a forge. You can now craft materials here."]);
+  setEncounter("forge");
+  return false;
   }
 
   return (
@@ -71,6 +102,7 @@ export default function GameEngine() {
     <p><strong>Tier:</strong> {player.tier}</p>
     <p><strong>HP:</strong> {player.health} / {getMaxHealth(player)}</p>
     <p><strong>DMG:</strong> {getDamage(player)}</p>
+    <p><strong>ForgeAvailable: </strong>{isForgeAvailable(player)}</p>
     <div>
       <strong>Equipment:</strong>
       <ul className="list-disc ml-6">
@@ -82,7 +114,7 @@ export default function GameEngine() {
   </div>
   
 )}
-<CommandConsole player={player} setPlayer={setPlayer} setLog={setLog} pendingLoot={pendingLoot} setPendingLoot={setPendingLoot}/>
+<CommandConsole player={player} setPlayer={setPlayer} setLog={setLog} pendingLoot={pendingLoot} setPendingLoot={setPendingLoot} encounter={encounter} setEncounter={setEncounter} setEnemy={setEnemy}/>
 
     </div>
   );

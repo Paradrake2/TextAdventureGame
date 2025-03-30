@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { runCommand } from "./command";
+import { Enemy } from "./enemies";
 import { Equipment } from "./equipment";
 import { Player } from "./player";
 
@@ -10,16 +11,19 @@ interface CommandConsoleProps {
   setPlayer: (player: Player) => void;
   setLog: (log: (prev: string[]) => string[]) => void;
   setPendingLoot: React.Dispatch<React.SetStateAction<Equipment | null>>;
+  encounter: "none" | "ore_mine" | "forge";
+  setEncounter: React.Dispatch<React.SetStateAction<"none" | "ore_mine" | "forge">>;
+  setEnemy: React.Dispatch<React.SetStateAction<Enemy>>;
 }
 
-export default function CommandConsole({ player, setPlayer, setLog, pendingLoot, setPendingLoot }: CommandConsoleProps) {
+export default function CommandConsole({ player, setPlayer, setLog, pendingLoot, setPendingLoot, encounter, setEncounter, setEnemy }: CommandConsoleProps) {
   const [input, setInput] = useState("");
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (input.trim() === "") return;
 
-    const { log: result, updatedPlayer } = runCommand(input, player, pendingLoot, setPendingLoot);
+    const { log: result, updatedPlayer } = runCommand(input, player, pendingLoot, setPendingLoot, encounter, setEncounter, setEnemy);
     setLog(prev => [...prev, `> ${input}`, ...result]);
     setPlayer(updatedPlayer);
     setInput("");

@@ -26,3 +26,11 @@ export function getDamage(player: Player): number {
     return baseDamage + bonus;
 }
 
+export function isForgeAvailable(player: Player): string {
+    if(player.forgeAvailable) {
+        return ("true");
+    }
+    else {
+        return ("false");
+    }
+}
