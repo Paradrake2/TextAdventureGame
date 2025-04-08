@@ -18,47 +18,48 @@ export default function GameEngine() {
   const [encounter, setEncounter] = useState<"none" | "ore_mine" | "forge">("none");
 
   function handleAttack() {
-    setEnemy(generateEnemy(player.tier));
-    player.forgeAvailable = false;
-    const damage = getDamage(player);
-    const updatedEnemy = {
-      ...enemy,
-      health: Math.max(enemy.health - damage, 0)
-    }
-    setEnemy(updatedEnemy);
-    setLog(prev => [...prev, `You hit the ${enemy.name} for ${damage}!`]);
-
-    if (updatedEnemy.health > 0) {
-      const {updatedPlayer, log:attackLog } = handleEnemyAttack(updatedEnemy, player);
-      setPlayer(updatedPlayer);
-      setLog(prev => [...prev, attackLog]);
-    }
-    else {
-      setLog(prev => [...prev, `You defeated the ${enemy.name}!`]);
-
-      const { player: updatedPlayer, log: battleLog, loot } = handleKillLogic(player, enemy);
-      setPlayer(updatedPlayer);
-
-      // Encounter system will go here
-      const shouldSpawnEnemy = encounterHandler(player);
-      if (shouldSpawnEnemy) {
-        log.push("SHOULD SPAWN ENEMY");
+      setEnemy(generateEnemy(player.tier));
+      player.forgeAvailable = false;
+      const damage = getDamage(player);
+      const updatedEnemy = {
+        ...enemy,
+        health: Math.max(enemy.health - damage, 0)
       }
-
-      setLog(prev => [...prev, ...battleLog]);
-      if(loot) {
-        setPendingLoot(loot);
+      setEnemy(updatedEnemy);
+      setLog(prev => [...prev, `You hit the ${enemy.name} for ${damage}!`]);
+      
+      if (updatedEnemy.health > 0) {
+        const {updatedPlayer, log:attackLog } = handleEnemyAttack(updatedEnemy, player);
+        setPlayer(updatedPlayer);
+        setLog(prev => [...prev, attackLog]);
       }
+      else {
+        setLog(prev => [...prev, `You defeated the ${enemy.name}!`]);
+        
+        const { player: updatedPlayer, log: battleLog, loot } = handleKillLogic(player, enemy);
+        setPlayer(updatedPlayer);
+        
+        // Encounter system will go here
+        const shouldSpawnEnemy = encounterHandler(player);
+        if (shouldSpawnEnemy) {
+          setEnemy(generateEnemy(player.tier));
+        }
+        
+        setLog(prev => [...prev, ...battleLog]);
+        if(loot) {
+          setPendingLoot(loot);
+        }
     }
   }
 
   function encounterHandler(updatedPlayer: Player): boolean {
     const roll = Math.random();
     log.push(roll.toString());
-    if (roll < 0.1) {
+    if (roll < 0.5) {
+      const encounter = "none";
       return true;
     }
-    else if (roll < 0.45) {
+    else if (roll < 0.75) {
       const result = oreEncounter(player);
       setPlayer(result.updatedPlayer);
       setLog(prev => [...prev, ...result.log]);
@@ -67,13 +68,15 @@ export default function GameEngine() {
       return false;
     }
     updatedPlayer.forgeAvailable = true;
-  refineOresToIngots(updatedPlayer);
-  setPlayer({ ...updatedPlayer });
-  setLog(prev => [...prev, "You stumble upon a forge. You can now craft materials here."]);
-  setEncounter("forge");
+    refineOresToIngots(updatedPlayer);
+    setPlayer({ ...updatedPlayer });
+    setLog(prev => [...prev, "You stumble upon a forge. You can now craft materials here."]);
+    setEncounter("forge");
   return false;
   }
-
+  function leaveEncounter() {
+    player.forgeAvailable = false;
+  }
   return (
     <div>
       <h2 className="text-xl font-bold">Enemy: {enemy.name}</h2>
@@ -84,6 +87,9 @@ export default function GameEngine() {
       </button>
       <button onClick={() => setShowStats(!showStats)} className="mat-2 px-4 py-2 bg-green-600 hover:bg-green-700 rounded">
         Show Player Stats
+      </button>
+      <button onClick={() => leaveEncounter} className="mat-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded">
+        Leave Encounter
       </button>
       <div className="mt-4">
         <h3 className="text-lg font-bold">Battle Log:</h3>
@@ -103,6 +109,7 @@ export default function GameEngine() {
     <p><strong>HP:</strong> {player.health} / {getMaxHealth(player)}</p>
     <p><strong>DMG:</strong> {getDamage(player)}</p>
     <p><strong>ForgeAvailable: </strong>{isForgeAvailable(player)}</p>
+    <p><strong>Encounter: </strong>{encounter}</p>
     <div>
       <strong>Equipment:</strong>
       <ul className="list-disc ml-6">

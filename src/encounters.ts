@@ -24,6 +24,7 @@ export function forgeEncounter(player: Player): {log: string[], updatedPlayer: P
     const log = refineOresToIngots(player);
     player.forgeAvailable = true;
     log.push("You discovered a forge! You can now craft ingots using 'craft material <ingot> <material>. For example: craft material copper_ingot copper_blade.");
+    log.push(`Type "leave" to leave the forge.`)
     return {log, updatedPlayer: player};
 
 }

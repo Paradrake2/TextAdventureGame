@@ -49,6 +49,7 @@ export function runCommand(input: string, player: Player, pendingLoot: Equipment
     if (encounter === "forge" || encounter === "ore_mine") {
       setEncounter("none");
       log.push("You leave the area...");
+      player.forgeAvailable = false;
       setEnemy(generateEnemy(player.tier));
     } else {
       log.push("There's nothing to leave.");
