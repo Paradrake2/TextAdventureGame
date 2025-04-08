@@ -18,6 +18,7 @@ export default function GameEngine() {
   const [encounter, setEncounter] = useState<"none" | "ore_mine" | "forge">("none");
 
   function handleAttack() {
+    if(player.health > 0) {
       setEnemy(generateEnemy(player.tier));
       player.forgeAvailable = false;
       const damage = getDamage(player);
@@ -49,7 +50,11 @@ export default function GameEngine() {
         if(loot) {
           setPendingLoot(loot);
         }
+      }
+    } else {
+      setLog(prev => [...prev, "You are dead. Reload the page to start over."]);
     }
+      
   }
 
   function encounterHandler(updatedPlayer: Player): boolean {
