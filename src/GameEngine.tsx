@@ -56,7 +56,7 @@ export default function GameEngine() {
     }
       
   }
-
+  
   function encounterHandler(updatedPlayer: Player): boolean {
     const roll = Math.random();
     log.push(roll.toString());
@@ -81,6 +81,9 @@ export default function GameEngine() {
   }
   function leaveEncounter() {
     player.forgeAvailable = false;
+    const encounter = "none";
+    setLog(prev => [...prev, "test"]);
+    return encounter;
   }
   return (
     <div>
@@ -93,7 +96,7 @@ export default function GameEngine() {
       <button onClick={() => setShowStats(!showStats)} className="mat-2 px-4 py-2 bg-green-600 hover:bg-green-700 rounded">
         Show Player Stats
       </button>
-      <button onClick={() => leaveEncounter} className="mat-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded">
+      <button onClick={() => leaveEncounter()} className="mat-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded">
         Leave Encounter
       </button>
       <div className="mt-4">
